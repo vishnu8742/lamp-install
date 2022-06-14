@@ -1,8 +1,8 @@
 #!/bin/sh
 
 #######################################
-# Bash script to install an AMP stack and PHPMyAdmin plus tweaks. For Debian based systems.
-# Written by @AamnahAkram from http://aamnah.com
+# Bash script to install an AMP stack For ubuntu based systems.
+# Written by @vishnu8742
 
 # In case of any errors (e.g. MySQL) just re-run the script. Nothing will be re-installed except for the packages with errors.
 #######################################
