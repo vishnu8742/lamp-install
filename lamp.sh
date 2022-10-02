@@ -47,7 +47,7 @@ echo -e "$Green \n Permissions have been set $Color_Off"
 # Enabling Mod Rewrite, required for WordPress permalinks and .htaccess files
 echo -e "$Cyan \n Enabling Modules $Color_Off"
 sudo a2enmod rewrite
-sudo php5enmod mcrypt
+sudo phpenmod mcrypt
 
 # Restart Apache
 echo -e "$Cyan \n Restarting Apache $Color_Off"
