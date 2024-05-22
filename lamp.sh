@@ -49,14 +49,11 @@ sudo systemctl restart apache2
 
 # Setup Virtual Host
 read -p "Enter your domain name (e.g., example.com): " domain_name
-sudo mkdir -p /var/www/$domain_name/public_html
+sudo mkdir -p /var/www/$domain_name/
 
 # Set permissions
-sudo chown -R $USER:$USER /var/www/$domain_name/public_html
+sudo chown -R $USER:$USER /var/www/$domain_name/
 sudo chmod -R 755 /var/www
-
-# Create sample index.php
-echo "<?php phpinfo(); ?>" > /var/www/$domain_name/public_html/index.php
 
 # Create Virtual Host File
 sudo bash -c "cat > /etc/apache2/sites-available/$domain_name.conf <<EOF
@@ -64,8 +61,8 @@ sudo bash -c "cat > /etc/apache2/sites-available/$domain_name.conf <<EOF
     ServerAdmin webmaster@$domain_name
     ServerName $domain_name
     ServerAlias www.$domain_name
-    DocumentRoot /var/www/$domain_name/public_html
-    <Directory /var/www/$domain_name/public_html>
+    DocumentRoot /var/www/$domain_name/
+    <Directory /var/www/$domain_name/>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -102,8 +99,8 @@ echo
 echo "Creating MySQL database and user..."
 sudo mysql -u root -p$mysql_root_password <<MYSQL_SCRIPT
 CREATE DATABASE $db_name;
-CREATE USER '$db_user'@'localhost' IDENTIFIED BY '$db_user_password';
-GRANT ALL PRIVILEGES ON $db_name.* TO '$db_user'@'localhost';
+CREATE USER '$db_user'@'%' IDENTIFIED BY '$db_user_password';
+GRANT ALL PRIVILEGES ON $db_name.* TO '$db_user'@'%';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
 
