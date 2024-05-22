@@ -7,42 +7,113 @@
 # In case of any errors (e.g. MySQL) just re-run the script. Nothing will be re-installed except for the packages with errors.
 #######################################
 
-#COLORS
-# Reset
-Color_Off='\033[0m'       # Text Reset
+#!/bin/bash
 
-# Regular Colors
-Red='\033[0;31m'          # Red
-Green='\033[0;32m'        # Green
-Yellow='\033[0;33m'       # Yellow
-Purple='\033[0;35m'       # Purple
-Cyan='\033[0;36m'         # Cyan
+echo "LAMP Server Installation Script"
 
-# Update packages and Upgrade system
-echo -e "$Cyan \n Updating System.. $Color_Off"
-sudo apt update -y && sudo apt upgrade -y
+# Update system
+echo "Updating system..."
+sudo apt update && sudo apt upgrade -y
 
-## Install AMP
-echo -e "$Cyan \n Installing Apache2 $Color_Off"
+# Install Apache
+echo "Installing Apache..."
 sudo apt install apache2 -y
 
-echo -e "$Cyan \n Installing PHP & Requirements $Color_Off"
-sudo apt install php libapache2-mod-php php-mysql php-dom php-curl -y
+# Enable Apache to run on startup
+echo "Enabling Apache to start on boot..."
+sudo systemctl enable apache2
 
-echo -e "$Cyan \n Installing MySQL $Color_Off"
+# Start Apache
+echo "Starting Apache..."
+sudo systemctl start apache2
+
+# Install MySQL
+echo "Installing MySQL..."
 sudo apt install mysql-server -y
 
-# echo -e "$Cyan \n Installing phpMyAdmin $Color_Off"
-# sudo apt-get install phpmyadmin -y
+# Secure MySQL installation
+echo "Securing MySQL installation..."
+sudo mysql_secure_installation
 
-# echo -e "$Cyan \n Verifying installs$Color_Off"
-# sudo apt-get install apache2 libapache2-mod-php5 php5 mysql-server php-pear php5-mysql mysql-client mysql-server php5-mysql php5-gd -y
+# Get MySQL root password
+read -sp "Enter MySQL root password: " mysql_root_password
+echo
 
-## TWEAKS and Settings
-# Permissions
-echo -e "$Cyan \n Permissions for /var/www $Color_Off"
-sudo chown -R www-data:www-data /var/www
-echo -e "$Green \n Permissions have been set $Color_Off"
+# Install PHP
+echo "Installing PHP..."
+sudo apt install php libapache2-mod-php php-mysql -y
+
+# Restart Apache to recognize PHP
+echo "Restarting Apache to load PHP..."
+sudo systemctl restart apache2
+
+# Setup Virtual Host
+read -p "Enter your domain name (e.g., example.com): " domain_name
+sudo mkdir -p /var/www/$domain_name/public_html
+
+# Set permissions
+sudo chown -R $USER:$USER /var/www/$domain_name/public_html
+sudo chmod -R 755 /var/www
+
+# Create sample index.php
+echo "<?php phpinfo(); ?>" > /var/www/$domain_name/public_html/index.php
+
+# Create Virtual Host File
+sudo bash -c "cat > /etc/apache2/sites-available/$domain_name.conf <<EOF
+<VirtualHost *:80>
+    ServerAdmin webmaster@$domain_name
+    ServerName $domain_name
+    ServerAlias www.$domain_name
+    DocumentRoot /var/www/$domain_name/public_html
+    <Directory /var/www/$domain_name/public_html>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog \${APACHE_LOG_DIR}/$domain_name-error.log
+    CustomLog \${APACHE_LOG_DIR}/$domain_name-access.log combined
+    RewriteEngine on
+    RewriteCond %{SERVER_NAME} =$domain_name [OR]
+    RewriteCond %{SERVER_NAME} =www.$domain_name
+    RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+EOF"
+
+# Enable the new virtual host
+sudo a2ensite $domain_name.conf
+
+# Disable the default virtual host
+sudo a2dissite 000-default.conf
+
+# Enable Apache rewrite module
+sudo a2enmod rewrite
+
+# Reload Apache
+echo "Reloading Apache to apply changes..."
+sudo systemctl reload apache2
+
+# Setup MySQL Database
+read -p "Enter name for the new MySQL database: " db_name
+read -p "Enter MySQL database user: " db_user
+read -sp "Enter password for MySQL user $db_user: " db_user_password
+echo
+
+# Create MySQL Database and User
+echo "Creating MySQL database and user..."
+sudo mysql -u root -p$mysql_root_password <<MYSQL_SCRIPT
+CREATE DATABASE $db_name;
+CREATE USER '$db_user'@'localhost' IDENTIFIED BY '$db_user_password';
+GRANT ALL PRIVILEGES ON $db_name.* TO '$db_user'@'localhost';
+FLUSH PRIVILEGES;
+MYSQL_SCRIPT
+
+echo "LAMP server setup is complete!"
+echo "Domain: $domain_name"
+echo "MySQL Root Password: $mysql_root_password"
+echo "Database Name: $db_name"
+echo "Database User: $db_user"
+echo "Database User Password: $db_user_password"
+
 
 # Enabling Mod Rewrite, required for WordPress permalinks and .htaccess files
 echo -e "$Cyan \n Enabling Modules $Color_Off"
