@@ -8,6 +8,6 @@ This will :
   * Install mysql
 
 Simple way to get start is 
-  * `wget https://raw.githubusercontent.com/vishnu8742/lamp-install/main/lamp.sh` 
-  * `chmod -x ./lamp.sh` 
-  * `bash ./lamp.sh`
+`wget https://raw.githubusercontent.com/vishnu8742/lamp-install/main/lamp.sh` 
+`chmod -x ./lamp.sh` 
+`bash ./lamp.sh`
