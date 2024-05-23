@@ -100,7 +100,7 @@ echo "Creating MySQL database and user..."
 sudo mysql -u root -p$mysql_root_password <<MYSQL_SCRIPT
 CREATE DATABASE $db_name;
 CREATE USER '$db_user'@'%' IDENTIFIED BY '$db_user_password';
-GRANT ALL PRIVILEGES ON $db_name.* TO '$db_user'@'%';
+GRANT ALL PRIVILEGES ON *.* TO '$db_user'@'%';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
 
